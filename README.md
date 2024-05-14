@@ -41,10 +41,12 @@
 
 Создадим следующие файлы конфигурации:
 
-    main.tf:
+main.tf:
+
+        main.tf:
 
     provider "yandex" {
-      service_account_key_file = var.service_account_key_file  # путь к файлу ключа служебного аккаунта в Yandex Cloud.
+      service_account_key_file = var.service_account_key_file  # путь к файлу ключа служебного аккаунта в Yandex Cloud.(создать                                                                                                                         авторизованный ключ)
       folder_id                = var.folder_id                 # идентификатор папки в Yandex Cloud
       zone                     = var.zone
     }
@@ -55,13 +57,22 @@
       platform_id  = "standard-v2"
       resources {
         cores  = 2
-        memory = 2048
+        memory = 2
       }
       boot_disk {
         initialize_params {
-          image_id = "fd89in2pfe5etl0n8k3r"  # ID образа Ubuntu 20.04 LTS
+          image_id = "fd8j623f06gi15mfk4g6"  # ID образа Ubuntu 20.04 LTS
           size     = 10
         }
+      }
+
+      network_interface {
+        subnet_id = "e9bd81o1empdeuaqltg2"
+      }
+
+
+      scheduling_policy {
+        preemptible = true
       }
     }
 
@@ -71,13 +82,21 @@
       platform_id  = "standard-v2"
       resources {
         cores  = 2
-        memory = 2048
+        memory = 2
       }
       boot_disk {
         initialize_params {
           image_id = "fd89in2pfe5etl0n8k3r"  # ID образа Ubuntu 20.04 LTS
           size     = 10
         }
+      }
+      network_interface {
+        subnet_id = "e9bd81o1empdeuaqltg2"
+      }
+
+
+      scheduling_policy {
+        preemptible = true
       }
     }
 
@@ -87,13 +106,21 @@
       platform_id  = "standard-v2"
       resources {
         cores  = 2
-        memory = 2048
+        memory = 2
       }
       boot_disk {
         initialize_params {
-          image_id = "fd89in2pfe5etl0n8k3r"  # ID образа Ubuntu 20.04 LTS
+          image_id = "fd8j623f06gi15mfk4g6"  # ID образа Ubuntu 20.04 LTS
           size     = 10
         }
+      }
+      network_interface {
+        subnet_id = "e9bd81o1empdeuaqltg2"
+      }
+
+
+      scheduling_policy {
+        preemptible = true
       }
     }
 
@@ -103,13 +130,21 @@
       platform_id  = "standard-v2"
       resources {
         cores  = 2
-        memory = 2048
+        memory = 2
       }
       boot_disk {
         initialize_params {
-          image_id = "fd89in2pfe5etl0n8k3r"  # ID образа Ubuntu 20.04 LTS
+          image_id = "fd8j623f06gi15mfk4g6"  # ID образа Ubuntu 20.04 LTS
           size     = 10
         }
+      }
+      network_interface {
+        subnet_id = "e9bd81o1empdeuaqltg2"
+      }
+
+
+      scheduling_policy {
+        preemptible = true
       }
     }
 
@@ -119,13 +154,21 @@
       platform_id  = "standard-v2"
       resources {
         cores  = 2
-        memory = 2048
+        memory = 2
       }
       boot_disk {
         initialize_params {
-          image_id = "fd89in2pfe5etl0n8k3r"  # ID образа Ubuntu 20.04 LTS
+          image_id = "fd8j623f06gi15mfk4g6"  # ID образа Ubuntu 20.04 LTS
           size     = 10
         }
+      }
+      network_interface {
+        subnet_id = "e9bd81o1empdeuaqltg2"
+      }
+
+
+      scheduling_policy {
+        preemptible = true
       }
     }
 
@@ -135,16 +178,23 @@
       platform_id  = "standard-v2"
       resources {
         cores  = 2
-        memory = 2048
+        memory = 2
       }
       boot_disk {
         initialize_params {
-          image_id = "fd89in2pfe5etl0n8k3r"  # ID образа Ubuntu 20.04 LTS
+          image_id = "fd8j623f06gi15mfk4g6"  # ID образа Ubuntu 20.04 LTS
           size     = 10
         }
       }
-    }
+      network_interface {
+        subnet_id = "e9bd81o1empdeuaqltg2"
+      }
 
+
+      scheduling_policy {
+        preemptible = true
+      }
+    }
 
 
 Создадим variables.tf:
