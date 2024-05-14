@@ -399,125 +399,115 @@ filebeat.yml.j2:
 
 5. Ansible playbook для выполнения установки Docker и загрузки образа Zabbix, MariaDB, настройки базы данных, а также настройки брандмауэра с помощью nftables:
 
-    ---
-    - hosts: vmzabbix
-      gather_facts: no
-      vars:
-        zabbix_server_ip: "YOUR_ZABBIX_SERVER_IP_OR_FQDN"      # фактический IP-адрес или доменное имя Zabbix сервера.
-      tasks:
-        - name: Install Docker
-          apt:
-            name: "{{ item }}"
-            state: present
-          loop:
-            - docker.io
-            - docker-compose
-          become: yes
+        ---
+        - hosts: vmzabbix
+          gather_facts: no
+          vars:
+            zabbix_server_ip: "YOUR_ZABBIX_SERVER_IP_OR_FQDN"      # фактический IP-адрес или доменное имя Zabbix сервера.
+          tasks:
+            - name: Install Docker
+              apt:
+                name: "{{ item }}"
+                state: present
+              loop:
+                - docker.io
+                - docker-compose
+              become: yes
 
-        - name: Start and enable Docker service
-          systemd:
-            name: docker
-            state: started
-            enabled: yes
-          become: yes
+            - name: Start and enable Docker service
+              systemd:
+                name: docker
+                state: started
+                enabled: yes
+              become: yes
 
-        - name: Pull Zabbix Docker image
-          docker_image:
-            name: zabbix/zabbix-6.4:latest
-          become: yes
+            - name: Pull Zabbix Docker image
+              docker_image:
+                name: zabbix/zabbix-6.4:latest
+              become: yes
 
-        - name: Install MariaDB server
-          apt:
-            name: "{{ item }}"
-            state: present
-          loop:
-            - zabbix-server-mysql				      
-            - zabbix-frontend-php				     
-            - zabbix-apache-conf				     
-            - zabbix-sql-scripts				      
-            - zabbix-agent					     
-            - mariadb-common
-            - mariadb-server-10.6
-            - mariadb-client-10.6
-          become: yes
+            - name: Install MariaDB server
+             apt:
+                name: "{{ item }}"
+                state: present
+              loop:
+                - zabbix-server-mysql				 
+                - zabbix-frontend-php				 
+                - zabbix-apache-conf				 
+                - zabbix-sql-scripts				
+                - zabbix-agent					
+                - mariadb-common
+                - mariadb-server-10.6
+                - mariadb-client-10.6
+              become: yes
 
-        - name: Start and enable MariaDB service
-          systemd:
-            name: mariadb
-            state: started
-            enabled: yes
-          become: yes
+            - name: Start and enable MariaDB service
+              systemd:
+                name: mariadb
+                state: started
+                enabled: yes
+              become: yes
 
-        - name: Configure MariaDB root password
-          expect:
-            command: mysql_secure_installation
-            responses:
-              'Enter current password for root (enter for none):': '\r'
-              'Set root password? [Y/n]': 'y\r'
-              'New password:': '12345678\r'
-              'Re-enter new password:': '12345678\r'
-              'Remove anonymous users? [Y/n]': 'y\r'
-              'Disallow root login remotely? [Y/n]': 'y\r'
-              'Remove test database and access to it? [Y/n]': 'y\r'
-              'Reload privilege tables now? [Y/n]': 'y\r'
-          become: yes
+            - name: Configure MariaDB root password
+              expect:
+                command: mysql_secure_installation
+                responses:
+                  'Enter current password for root (enter for none):': '\r'
+                      'Set root password? [Y/n]': 'y\r'
+                  'New password:': '12345678\r'
+                  'Re-enter new password:': '12345678\r'
+                  'Remove anonymous users? [Y/n]': 'y\r'
+                  'Disallow root login remotely? [Y/n]': 'y\r'
+                  'Remove test database and access to it? [Y/n]': 'y\r'
+                  'Reload privilege tables now? [Y/n]': 'y\r'
+              become: yes
 
-        - name: Create Zabbix database and user
-          mysql_db:
-            name: zabbix
-            state: present
-            collation: utf8mb4_bin
-          become: yes
+            - name: Create Zabbix database and user
+              mysql_db:
+                name: zabbix
+                state: present
+                collation: utf8mb4_bin
+              become: yes
 
-        - name: Create Zabbix database user
-          mysql_user:
-            name: zabbix
-            password: 12345678
-            priv: "zabbix.*:ALL"
-            host: localhost
-            state: present
-          become: yes
+            - name: Create Zabbix database user
+              mysql_user:
+                name: zabbix
+                password: 12345678
+                priv: "zabbix.*:ALL"
+                host: localhost
+                state: present
+                become: yes
 
-        - name: Import Zabbix database schema
-          shell: zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | mysql -uzabbix -p12345678 zabbix
-          become: yes
+            - name: Import Zabbix database schema
+              shell: zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | mysql -uzabbix -p12345678 zabbix
+              become: yes
 
-        - name: Set DBPassword in Zabbix server config
-          lineinfile:
-            path: /etc/zabbix/zabbix_server.conf
-            regexp: '^DBPassword='
-            line: 'DBPassword=12345678'
-          become: yes
+            - name: Set DBPassword in Zabbix server config
+              lineinfile:
+                path: /etc/zabbix/zabbix_server.conf
+                regexp: '^DBPassword='
+                line: 'DBPassword=12345678'
+              become: yes
 
-        - name: Restart Zabbix server
-          service:
-            name: zabbix-server
-            state: restarted
-          become: yes
+            - name: Restart Zabbix server
+              service:
+                name: zabbix-server
+                state: restarted
+              become: yes
 
-        - name: Configure nftables rules
-          template:
-            src: nftables_zabbix_rules.nft.j2
-            dest: /etc/nftables.conf
-          notify: restart nftables
-          become: yes
+            - name: Configure nftables rules
+              template:
+                src: nftables_zabbix_rules.nft.j2
+                dest: /etc/nftables.conf
+              notify: restart nftables
+              become: yes
 
-    handlers:
-      - name: restart nftables
-        service:
-          name: nftables
-          state: restarted
-        become: yes
-
-Создадим файл nftables_zabbix_rules.nft.j2 в директории с playbook'ом:
-
-        table inet filter {
-          chain input {
-            type filter hook input priority 0;
-            tcp dport 10050 accept;
-          }
-        }
-
+        handlers:
+          - name: restart nftables
+            service:
+              name: nftables
+              state: restarted
+            become: yes
 Этот playbook устанавливает Zabbix и MariaDB, устанавливает необходимые пакеты, настраивает MariaDB и Zabbix, а также настраивает брандмауэр с помощью nftables.Может потребоваться настроить параметры Docker-контейнера Zabbix.
 
 В файл ansible_inventory.ini вставим : 
