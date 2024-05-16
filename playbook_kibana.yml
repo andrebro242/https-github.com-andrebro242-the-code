@@ -1,0 +1,66 @@
+- hosts: vmkibana
+  gather_facts: no
+  vars:
+    vmkibana_ip: "YOUR_VMKIBANA_IP_ADDRESS"
+  tasks:
+    - name: Install Docker and Docker Compose
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - docker.io
+        - docker-compose
+      become: yes
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+      become: yes
+
+    - name: Create a directory for Kibana configuration
+      file:
+        path: /etc/kibana
+        state: directory
+      become: yes
+
+    - name: Copy Kibana configuration file
+      copy:
+        src: kibana.yml
+        dest: /etc/kibana/kibana.yml
+      become: yes
+
+    - name: Create Docker Compose file for Kibana
+      copy:
+        content: |
+          version: '3'
+          services:
+            kibana:
+              image: docker.elastic.co/kibana/kibana:8.2.0
+              container_name: kibana
+              ports:
+                - "5601:5601"
+              volumes:
+                - /etc/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+              environment:
+                - ELASTICSEARCH_HOSTS=http://{{ elasticsearch_host }}:9200
+      dest: /root/docker-compose-kibana.yml
+      become: yes
+
+        - name: Start Kibana service with Docker Compose
+          command: docker-compose -f /root/docker-compose-kibana.yml up -d
+          become: yes
+        - name: Configure nftables rules
+          template:
+            src: nftables_kibana_rules.nft.j2
+            dest: /etc/nftables.conf
+          notify: restart nftables
+          become: yes
+
+    handlers:
+      - name: restart nftables
+        systemd:
+          name: nftables
+          state: restarted
+        become: yes

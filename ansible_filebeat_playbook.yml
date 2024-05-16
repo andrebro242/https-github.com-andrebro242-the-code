@@ -1,0 +1,37 @@
+    ---
+    - hosts: vm1
+      become: true
+      vars:
+        vm1_ip: "YOUR_VM1_IP_ADDRESS"
+      tasks:
+        - name: Install Filebeat
+          apt:
+            name: filebeat
+            state: present
+        - name: Copy Filebeat configuration file
+          template:
+            src: filebeat.yml.j2
+            dest: /etc/filebeat/filebeat.yml
+          notify: restart filebeat
+
+    - hosts: vm2
+      become: true
+      vars:
+        vm2_ip: "YOUR_VM2_IP_ADDRESS"
+      tasks:
+        - name: Install Filebeat
+          apt:
+            name: filebeat
+            state: present
+        - name: Copy Filebeat configuration file
+          template:
+            src: filebeat.yml.j2
+            dest: /etc/filebeat/filebeat.yml
+          notify: restart filebeat
+
+    handlers:
+      - name: restart filebeat
+        service:
+          name: filebeat
+          state: restarted
+

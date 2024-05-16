@@ -1,0 +1,8 @@
+    table inet filter {
+      chain input {
+        type filter hook input priority 0;
+        # Добавим здесь необходимые правила для разрешения доступа к Kibana порту (обычно 5601)
+        tcp dport 5601 accept;     
+        # Другие правила, если необходимо
+      }
+    }

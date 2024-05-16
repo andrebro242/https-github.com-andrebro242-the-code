@@ -1,0 +1,8 @@
+    # nftables_elasticsearch_rules.nft.j2
+    table inet filter {
+        chain input {
+            type filter hook input priority 0;
+            tcp dport 9200 accept;
+            tcp dport 9300 accept;
+        }
+    }

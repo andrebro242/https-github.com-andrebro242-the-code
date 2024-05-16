@@ -1,0 +1,53 @@
+    - hosts: vmelk2
+      become: yes
+      tasks:
+        - name: Install Docker
+          apt:
+            name: "{{ item }}"
+            state: present
+          loop:
+            - docker.io
+            - docker-compose
+
+        - name: Start and enable Docker service
+          systemd:
+            name: docker
+            state: started
+            enabled: yes
+
+        - name: Create directory for Elasticsearch data
+          file:
+            path: /var/lib/elasticsearch
+            state: directory
+
+        - name: Set vm.max_map_count for Elasticsearch
+          sysctl:
+            name: vm.max_map_count
+            value: 262144
+            state: present
+
+        - name: Configure nftables rules for Elasticsearch
+          template:
+            src: nftables_elasticsearch_rules.nft.j2
+            dest: /etc/nftables.conf
+          notify: restart nftables
+
+        - name: Run Elasticsearch container
+          docker_container:
+            name: elasticsearch
+            image: docker.elastic.co/elasticsearch/elasticsearch:7.15.1
+            state: started
+            restart_policy: always
+            volumes:
+              - /var/lib/elasticsearch:/usr/share/elasticsearch/data
+            ports:
+              - "9200:9200"
+              - "9300:9300"
+            environment:
+              - "discovery.type=single-node"
+
+    handlers:
+      - name: restart nftables
+        systemd:
+          name: nftables
+          state: restarted
